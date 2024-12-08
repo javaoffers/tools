@@ -1,11 +1,13 @@
 package com.javaoffers.brief.excel;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
+import org.apache.poi.hssf.usermodel.HSSFObjectData;
 import org.apache.poi.hssf.usermodel.HSSFPicture;
 import org.apache.poi.hssf.usermodel.HSSFPictureData;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -39,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -261,26 +264,51 @@ public class POIUtils {
      */
     public static SheetData parseExcelFileData(byte[] datas, String sheetName, int rowNameIndex, int rowDataStartIndex, Map<String, String> cnName2EnName) throws Exception {
 
-        ByteArrayInputStream in = new ByteArrayInputStream(datas);
-
-        HSSFWorkbook sheets = new HSSFWorkbook(in);
-
-        return getSheetData(sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName, sheets);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(datas);
+        return parseExcelFileData(inputStream, sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName);
     }
 
     public static SheetData parseExcelFileData(String in, String sheetName, int rowNameIndex, int rowDataStartIndex, Map<String, String> cnName2EnName) throws Exception {
-
         FileInputStream inputStream = new FileInputStream(in);
-        Workbook workbook;
+        byte[] datas = new byte[inputStream.available()];
+        inputStream.read(datas);
+        inputStream.close();
+        return parseExcelFileData(datas, sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName);
+    }
+
+    /**
+     * 解析excel数据
+     *
+     * @param inputStream
+     * @return
+     */
+    public static SheetData parseExcelFileData(ByteArrayInputStream inputStream, String sheetName, int rowNameIndex, int rowDataStartIndex, Map<String, String> cnName2EnName) throws Exception {
+
         try {
-            workbook = new HSSFWorkbook(inputStream);
-        } catch (Exception e) {
-            inputStream.close();
-            inputStream = new FileInputStream(in);
-            workbook = new XSSFWorkbook(inputStream);
+            Workbook workbook;
+            Field buf = inputStream.getClass().getDeclaredField("buf");
+            buf.setAccessible(true);
+            byte[] bytes = (byte[]) buf.get(inputStream);
+            try {
+                workbook = new HSSFWorkbook(inputStream);
+            } catch (Exception e) {
+                inputStream.close();
+                inputStream = new ByteArrayInputStream(bytes);
+                workbook = new XSSFWorkbook(inputStream);
+            }
+
+            SheetData sheetData = getSheetData(sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName, workbook);
+            return sheetData;
+        }catch (Exception e){
+            throw e;
+        }finally {
+            try {
+                inputStream.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
 
-        return getSheetData(sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName, workbook);
     }
 
     /**
@@ -380,7 +408,7 @@ public class POIUtils {
      * @return
      * @throws IOException
      */
-    public static Map<String, List<MediaData>> getPictures(HSSFSheet sheet) throws IOException {
+    public static Map<String, List<MediaData>> getPictures(HSSFSheet sheet) throws Exception {
         Map<String, List<MediaData>> map = new HashMap();
         List<HSSFShape> list = sheet.getDrawingPatriarch().getChildren();
         for (HSSFShape shape : list) {
@@ -401,6 +429,36 @@ public class POIUtils {
                     map.put(key, mediaDataList);
                 }
                 mediaDataList.add(mediaData);
+            }else if (shape instanceof HSSFObjectData) {
+                HSSFObjectData objectData = (HSSFObjectData) shape;
+                int row = ((HSSFClientAnchor) objectData.getAnchor()).getRow2();
+                int col = ((HSSFClientAnchor) objectData.getAnchor()).getCol2();
+                String key = row + "-" + col; // 行号-列号
+
+                if (objectData.getFileName().contains("bin")) {
+                    // .bin文件
+                    InputStream embeddedStream =  new ByteArrayInputStream(objectData.getObjectData());
+                    POIFSFileSystem fs = new POIFSFileSystem(embeddedStream);
+                    Ole10Native ole10 = Ole10Native.createFromEmbeddedOleObject(fs.getRoot());
+                    // 文件名称
+                    String fileName = ole10.getLabel();
+                    // 后缀名
+                    String suffix = fileName.substring(fileName.lastIndexOf('.') + 1);
+                    // 字节
+                    byte[] bytes = ole10.getDataBuffer();
+                    MediaData mediaData = MediaData.builder()
+                            .data(bytes)
+                            .format(-1)
+                            .mimeType("")
+                            .pictureType(-1)
+                            .suggestFileExtension(suffix).build();
+                    List<MediaData> mediaDataList = map.get(key);
+                    if (mediaDataList == null) {
+                        mediaDataList = new ArrayList<>();
+                        map.put(key, mediaDataList);
+                    }
+                    mediaDataList.add(mediaData);
+                }
             }
         }
         return map;
@@ -443,7 +501,7 @@ public class POIUtils {
 
                 if (objectData.getFileName().contains("bin")) {
                     // .bin文件
-                    InputStream embeddedStream = objectData.getObjectPart().getInputStream();
+                    InputStream embeddedStream = new ByteArrayInputStream(objectData.getObjectData());
                     POIFSFileSystem fs = new POIFSFileSystem(embeddedStream);
                     Ole10Native ole10 = Ole10Native.createFromEmbeddedOleObject(fs.getRoot());
                     // 文件名称
