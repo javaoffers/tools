@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.javaoffers</groupId>
-    <artifactId>beif-tool</artifactId>
+    <artifactId>brief-tool</artifactId>
     <version>1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
