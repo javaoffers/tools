@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Picture;
+import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -48,7 +49,11 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -651,7 +656,38 @@ public class POIExcel {
         }else{
             HSSFCell cell = data_row.createCell(j);
             getDataCell(cell, dataCellStyle, j);
-            cell.setCellValue(String.valueOf(value));
+            if(value == null){
+                String NULL = null;
+                cell.setCellValue(NULL);
+            }else if(value instanceof String){
+                cell.setCellValue((String) value);
+            } else if (value instanceof Long){
+                cell.setCellValue((Long) value);
+            } else if(value instanceof Integer){
+                cell.setCellValue((Integer) value);
+            } else if(value instanceof Character){
+                cell.setCellValue((Character) value);
+            }else if(value instanceof Byte) {
+                cell.setCellValue((Byte) value);
+            } else if(value instanceof Double){
+                cell.setCellValue((Double) value);
+            }else if(value instanceof Float){
+                cell.setCellValue((Float) value);
+            } else if (value instanceof Date) {
+                cell.setCellValue((Date) value);
+            } else if (value instanceof Boolean) {
+                cell.setCellValue((Boolean) value);
+            } else if(value instanceof LocalDateTime){
+                cell.setCellValue((LocalDateTime) value);
+            } else if (value instanceof Calendar) {
+                cell.setCellValue((Calendar) value);
+            } else if (value instanceof LocalDate) {
+                cell.setCellValue((LocalDate) value);
+            } else if (value instanceof RichTextString) {
+                cell.setCellValue((RichTextString) value);
+            } else {
+                cell.setCellValue(String.valueOf(value));
+            }
         }
     }
 

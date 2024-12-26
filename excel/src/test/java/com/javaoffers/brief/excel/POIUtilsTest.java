@@ -20,12 +20,12 @@ public class POIUtilsTest {
         List<Map<String, Object>> rowsData = parseExcelData();
         Map<String, Object> da = rowsData.get(2);
         List<MediaData> mediaDataList = (List<MediaData>)da.get("testAssetV");
-        for(MediaData mediaData : mediaDataList){
-            byte[] data = mediaData.getData();
-            File file = new File(POIUtilsTest.class.getClassLoader().getResource(".").getPath()+"/sample/" + UUID.randomUUID().toString() + "." + mediaData.getSuggestFileExtension());
-            FileUtils.touch(file);
-            FileUtils.writeByteArrayToFile(file, data);
-        }
+//        for(MediaData mediaData : mediaDataList){
+//            byte[] data = mediaData.getData();
+//            File file = new File(POIUtilsTest.class.getClassLoader().getResource(".").getPath()+"/sample/" + UUID.randomUUID().toString() + "." + mediaData.getSuggestFileExtension());
+//            FileUtils.touch(file);
+//            FileUtils.writeByteArrayToFile(file, data);
+//        }
     }
 
     private static List<Map<String, Object>> parseExcelData() throws Exception {
