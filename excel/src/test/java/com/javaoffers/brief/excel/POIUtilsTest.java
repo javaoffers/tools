@@ -52,23 +52,12 @@ public class POIUtilsTest {
     public void testWrite() throws Exception {
         POIExcel instance = POIExcel.getInstance();
         String path = POIUtilsTest.class.getClassLoader().getResource(".").getPath()+"/sampleWrite/" + UUID.randomUUID().toString() +"sample.xls";
-        Map<String, String> map = MapUtils
-                .startBuildParam("id", "id")
-                .buildParam("testAssetP","xx")
-                .buildParam("testAssetV","xx")
-                .buildParam("deriveType","xx")
-                .buildParam("level","xx")
-                .buildParam("auditComments","xx")
-                .buildParam("rejection","xx")
-                .endBuildStringParam();
         String[][] k = new String[][]{
                 {"id","testAssetP","testAssetV","deriveType","level","auditComments","rejection"},
                 {"id", "图片","视频","类型","级别","审核意见","拒审原因",},
         };
 
         ArrayList<Map> list = new ArrayList<>();
-//        list.add(map);
-
         List<Map<String, Object>> maps = parseExcelData();
         maps.forEach(mapTmp->{
             HashMap<Object, Object> data = new HashMap<>();
