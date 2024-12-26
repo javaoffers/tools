@@ -90,8 +90,8 @@ public class POIUtilsTest {
         };
         List<Map> list = new ArrayList<>();
         Map<String, Object> map = MapUtils.startBuildParam("id", 1)
-                .buildParam("imageUrl", "https://www.geeksforgeeks.org,https://www.cnblogs.com/")
-                .buildParam("level", 1).endBuildParam();
+                .buildParam("imageUrl", "https://www.geeksforgeeks.org\nhttps://www.cnblogs.com/")
+                .buildParam("level", null).endBuildParam();
         list.add(map);
         instance.exportExcel(path, "sample", list, k, "");
     }
