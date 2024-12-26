@@ -15,6 +15,8 @@ import java.util.UUID;
 
 public class POIUtilsTest {
 
+    String path = POIUtilsTest.class.getClassLoader().getResource(".").getPath()+"/sampleWrite/" + UUID.randomUUID().toString() +"sample.xls";
+    POIExcel instance = POIExcel.getInstance();
     @Test
     public void samplePicAndVideo() throws Exception {
         List<Map<String, Object>> rowsData = parseExcelData();
@@ -50,8 +52,6 @@ public class POIUtilsTest {
 
     @Test
     public void testWrite() throws Exception {
-        POIExcel instance = POIExcel.getInstance();
-        String path = POIUtilsTest.class.getClassLoader().getResource(".").getPath()+"/sampleWrite/" + UUID.randomUUID().toString() +"sample.xls";
         String[][] k = new String[][]{
                 {"id","testAssetP","testAssetV","deriveType","level","auditComments","rejection"},
                 {"id", "图片","视频","类型","级别","审核意见","拒审原因",},
@@ -79,6 +79,20 @@ public class POIUtilsTest {
             list.add(data);
         });
 
+        instance.exportExcel(path, "sample", list, k, "");
+    }
+
+    @Test
+    public void testWriteUrl(){
+        String[][] k = new String[][]{
+                {"id","imageUrl","level"},
+                {"id", "图片","级别"},
+        };
+        List<Map> list = new ArrayList<>();
+        Map<String, Object> map = MapUtils.startBuildParam("id", 1)
+                .buildParam("imageUrl", "https://www.geeksforgeeks.org,https://www.cnblogs.com/")
+                .buildParam("level", 1).endBuildParam();
+        list.add(map);
         instance.exportExcel(path, "sample", list, k, "");
     }
 }
