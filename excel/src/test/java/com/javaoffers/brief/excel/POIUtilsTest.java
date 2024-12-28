@@ -113,6 +113,6 @@ public class POIUtilsTest {
 
         list.add(map);
 //        instance.getPoisMap().
-        instance.exportExcel(path, "sample", list, k, "");
+        instance.exportExcel(path, "sample", list, k);
     }
 }
