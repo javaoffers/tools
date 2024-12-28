@@ -11,7 +11,8 @@ public @interface ExcelField {
     String name() default "" ;
 
     /**
-     * 指定长度
+     * 指定字符长度
+     * length * 256
      */
     int length() default 0;
 }
