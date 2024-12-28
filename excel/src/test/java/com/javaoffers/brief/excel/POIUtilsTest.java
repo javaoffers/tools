@@ -3,6 +3,8 @@ package com.javaoffers.brief.excel;
 import com.javaoffers.brief.common.MapUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.junit.Test;
 
 import javax.print.attribute.standard.Media;
@@ -92,6 +94,23 @@ public class POIUtilsTest {
         Map<String, Object> map = MapUtils.startBuildParam("id", 1)
                 .buildParam("imageUrl", "https://www.geeksforgeeks.org\nhttps://www.cnblogs.com/")
                 .buildParam("level", null).endBuildParam();
+
+
+        instance.processColumnCell(((cell, cellStyle, cellIdx) -> {
+            if(cellIdx == 1){
+                HSSFSheet sheet = cell.getSheet();
+                //256为单个字符的长度
+                sheet.setColumnWidth(cellIdx, 40 * 256);
+            }
+
+        }));
+        instance.processDataCell((hssfCell, cellStyle, cellIdx) -> {
+            if(1 == cellIdx){
+                cellStyle.setWrapText(true);
+                hssfCell.setCellStyle(cellStyle);
+            }
+        });
+
         list.add(map);
 //        instance.getPoisMap().
         instance.exportExcel(path, "sample", list, k, "");
