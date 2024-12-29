@@ -9,11 +9,8 @@ import org.junit.Test;
 
 import javax.print.attribute.standard.Media;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class POIUtilsTest {
 
