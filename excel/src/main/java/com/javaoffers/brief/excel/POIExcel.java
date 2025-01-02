@@ -69,7 +69,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author cmj
  */
 public class POIExcel {
-    
+
     //为空
     private final static Object isnull = null;
 
@@ -101,24 +101,24 @@ public class POIExcel {
     private HSSFWorkbook createWorkBook(String path) throws Exception {
         if (path == null || "".equals(path))
             throw new Exception("path is null");
-        putV(new Integer(5), path);
+        putV(ExcelMark.CREATE_WORK_BOOK, path);
 
-        HSSFWorkbook workbook = (HSSFWorkbook) getV(new Integer(1));
+        HSSFWorkbook workbook = (HSSFWorkbook) getV(ExcelMark.WORK_BOOK);
         if (workbook == null) {
             workbook = new HSSFWorkbook();
-            putV(new Integer(1), workbook);
+            putV(ExcelMark.WORK_BOOK, workbook);
         }
         //HSSFWorkbook workbook = new HSSFWorkbook(new FileInputStream(new File(pathname)));
         return workbook;
     }
 
     private HSSFWorkbook getBooking() {
-        HSSFWorkbook book = (HSSFWorkbook) getV(new Integer(1));
+        HSSFWorkbook book = (HSSFWorkbook) getV(ExcelMark.WORK_BOOK);
         return book;
     }
 
     private String getBookPath() {
-        String path = (String) getV(new Integer(5));
+        String path = (String) getV(ExcelMark.CREATE_WORK_BOOK);
         return path;
     }
 
@@ -136,64 +136,67 @@ public class POIExcel {
      * @Auther: cmj
      */
     private void createSheet() throws Exception {
-        HSSFWorkbook wb = (HSSFWorkbook) getV(new Integer(1));
-        String sheetName = (String) getV(new Integer(2));
+        HSSFWorkbook wb = (HSSFWorkbook) getV(ExcelMark.WORK_BOOK);
+        String sheetName = (String) getV(ExcelMark.SHEET_NAME);
         if (sheetName == null)
             sheetName = "sheetName";
         HSSFSheet createSheet = wb.createSheet(sheetName);
-        ArrayList arrayList = (ArrayList) getV(new Integer(3));
+        ArrayList arrayList = (ArrayList) getV(ExcelMark.SHEET_LIST);
         if (arrayList == null) {
             arrayList = new ArrayList<>();
         }
 
         arrayList.add(createSheet);
-        putV(new Integer(3), arrayList); //存放sheet历史
-        putV(new Integer(4), createSheet); //存放最新创建的sheet
+        putV(ExcelMark.SHEET_LIST, arrayList); //存放sheet历史
+        putV(ExcelMark.CREATE_SHEET, createSheet); //存放最新创建的sheet
     }
 
     //创建sheet
     private void createSheet(String sheetName) throws Exception {
-        putV(new Integer(2), sheetName);
+        putV(ExcelMark.SHEET_NAME, sheetName);
         createSheet();
     }
 
     //获得最新所创建的sheet
     private HSSFSheet getSheet() {
-        HSSFSheet v = (HSSFSheet) getV(new Integer(4));
+        HSSFSheet v = (HSSFSheet) getV(ExcelMark.CREATE_SHEET);
         return v;
     }
 
+    /**
+     * export excel information
+     */
+    public <T> void exportExcel(String excelPath, String sheetName, List<Map> data, String[][] enClomAndCnClom) {
+        exportExcel(excelPath, sheetName, data, enClomAndCnClom, null);
+    }
 
     /**
-     * @throws
-     * @Title: exportExcel
-     * @Description: 创建Excel 并填充数据
-     * @param: @param excelPath  excel的全名
-     * @param: @param sheetName  sheet的名字
-     * @param: @param data       要填充的数据，每一条是一个Map
-     * @param: @param enClomAndCnClom      二维数组：
-     * 一维：存放数据map中的key
-     * 二维：存放输出excel后的列名字段
-     * @return: void
-     * @Auther: cmj
+     * export excel information
+     * @param excelPath  Export pathnames
+     * @param  sheetName  Sheet's name
+     * @param  data       To populate the data, each entry is a Map
+     * @param  enClomAndCnClom      two dimensional arrays：
+     * 1D: stores the key in the data map
+     * 2D: stores the column name fields after the output is Excel
+     * @param title title
      */
     public <T> void exportExcel(String excelPath, String sheetName, List<Map> data, String[][] enClomAndCnClom, String title) {
 
         try {
-            if(StringUtils.isNotBlank(excelPath)){
+            if (StringUtils.isNotBlank(excelPath)) {
                 FileUtils.touch(new File(excelPath));
             }
 
-            //获得当钱的workbook
+            //get a workbook when money
             HSSFWorkbook workBook = createWorkBook(excelPath);
 
-            //创建sheet
+            //create a sheet
             createSheet(sheetName);
 
-            //填充数据
+            //populate the data
             fillData(data, enClomAndCnClom, title);
 
-            //写入文件
+            //write to the file
             writeFile();
 
             workBook.close();
@@ -203,21 +206,19 @@ public class POIExcel {
         }
     }
 
-    public byte[] exportExcel(String sheetName, List<Map> data, String[][] en_clomAndcn_clom, String title) {
+    private byte[] exportExcel(String sheetName, List<Map> data, String[][] en_clomAndcn_clom, String title) {
 
         try {
-            //获得当钱的workbook
+            //Obtained workbook
             HSSFWorkbook workBook = createWorkBook("null");
 
-            //创建sheet
+            //Create a sheet
             createSheet(sheetName);
 
-            //TODO 设置样式
-
-            //填充数据
+            //Populate the data
             fillData(data, en_clomAndcn_clom, title);
 
-            //写入文件
+            //Write to the file
             byte[] bytes = writeBytes();
 
             workBook.close();
@@ -232,7 +233,7 @@ public class POIExcel {
     }
 
     /**
-     * 将数据输出到浏览器(下载)
+     * Exporting Data to the Browser (Download)
      *
      * @param response
      * @param exceFilelName
@@ -303,12 +304,12 @@ public class POIExcel {
 
             SheetData sheetData = getSheetData(sheetName, rowNameIndex, rowDataStartIndex, cnName2EnName, workbook);
             return sheetData;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw e;
-        }finally {
+        } finally {
             try {
                 inputStream.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -326,8 +327,8 @@ public class POIExcel {
      * @return
      */
     private SheetData getSheetData(String sheetName, int rowNameIndex,
-                                          int rowDataStartIndex, Map<String, String> cnName2EnName,
-                                          Workbook sheets) throws Exception {
+                                   int rowDataStartIndex, Map<String, String> cnName2EnName,
+                                   Workbook sheets) throws Exception {
 
         Sheet sheet = sheets.getSheet(sheetName);
         final Map<String, List<MediaData>> pictures = new HashMap<>();
@@ -433,7 +434,7 @@ public class POIExcel {
                     map.put(key, mediaDataList);
                 }
                 mediaDataList.add(mediaData);
-            }else if (shape instanceof HSSFObjectData) {
+            } else if (shape instanceof HSSFObjectData) {
                 HSSFObjectData objectData = (HSSFObjectData) shape;
                 int row = ((HSSFClientAnchor) objectData.getAnchor()).getRow2();
                 int col = ((HSSFClientAnchor) objectData.getAnchor()).getCol2();
@@ -441,7 +442,7 @@ public class POIExcel {
 
                 if (objectData.getFileName().contains("bin")) {
                     // .bin文件
-                    InputStream embeddedStream =  new ByteArrayInputStream(objectData.getObjectData());
+                    InputStream embeddedStream = new ByteArrayInputStream(objectData.getObjectData());
                     POIFSFileSystem fs = new POIFSFileSystem(embeddedStream);
                     Ole10Native ole10 = Ole10Native.createFromEmbeddedOleObject(fs.getRoot());
                     // 文件名称
@@ -589,16 +590,16 @@ public class POIExcel {
         //获得当前所创建的sheet
         HSSFSheet sheet = getSheet();
         boolean titleStatus = StringUtils.isNotBlank(title);
-        if(titleStatus){
+        if (titleStatus) {
             createTitle(title, length, sheet); //创建 title
         }
 
         int rowIdx = titleStatus ? 1 : 0;
         //创建 列名
-        createClom(cn_clom, sheet,rowIdx);
+        createColumn(cn_clom, sheet, rowIdx);
 
         //真实填充数据
-        fillData(data, en_clom, sheet,rowIdx+1 );
+        fillData(data, en_clom, sheet, rowIdx + 1);
 
     }
 
@@ -614,7 +615,7 @@ public class POIExcel {
      * @Auther: cmj
      */
     private void fillData(List<Map> data, String[] en_clom,
-                                 HSSFSheet sheet,int rowIdx) {
+                          HSSFSheet sheet, int rowIdx) {
         HSSFWorkbook workbook = sheet.getWorkbook();
         HSSFCellStyle RowCellStyle = workbook.createCellStyle(); //HSSFCellStyle 不能连续创建超过4030，这里使用单例重用
         HSSFCellStyle dataCellStyle = workbook.createCellStyle();
@@ -625,7 +626,7 @@ public class POIExcel {
             Map map = data.get(i);
             for (int j = 0; j < en_clom.length; j++) {
                 String key = en_clom[j];
-                Object value =  map.get(key);
+                Object value = map.get(key);
                 fillData(sheet, rowIdx, value, workbook, j, i, data_row, dataCellStyle);
 
             }
@@ -633,7 +634,9 @@ public class POIExcel {
     }
 
     private void fillData(HSSFSheet sheet, int rowIdx, Object value, HSSFWorkbook workbook, int j, int i, HSSFRow data_row, HSSFCellStyle dataCellStyle) {
-        if(value instanceof byte[]){
+        HSSFCell cell = data_row.createCell(j);
+        getDataCell(cell, dataCellStyle, j);
+        if (value instanceof byte[]) {
             byte[] bytes = (byte[]) value;
             FileTypeEnum typeEnum = FileTypeUtil.getFileTypeByInputStream(new ByteArrayInputStream(bytes));
             switch (typeEnum) {
@@ -642,7 +645,6 @@ public class POIExcel {
                     // 在工作表中添加图片
                     int pictureIdx = workbook.addPicture(bytes, Workbook.PICTURE_TYPE_JPEG);
                     CreationHelper helper = workbook.getCreationHelper();
-
                     // 创建一个图片
                     Drawing<?> drawing = sheet.createDrawingPatriarch();
                     ClientAnchor anchor = helper.createClientAnchor();
@@ -654,36 +656,32 @@ public class POIExcel {
 
                     break;
                 case MP4:
-                    HSSFCell cell = data_row.createCell(j);
-                    getDataCell(cell, dataCellStyle, j);
                     cell.setCellValue(String.valueOf("mp4暂不支持"));
                     break;
             }
-        }else{
-            HSSFCell cell = data_row.createCell(j);
-            getDataCell(cell, dataCellStyle, j);
-            if(value == null){
+        } else {
+            if (value == null) {
                 String NULL = null;
                 cell.setCellValue(NULL);
-            }else if(value instanceof String){
+            } else if (value instanceof String) {
                 cell.setCellValue((String) value);
-            } else if (value instanceof Long){
+            } else if (value instanceof Long) {
                 cell.setCellValue((Long) value);
-            } else if(value instanceof Integer){
+            } else if (value instanceof Integer) {
                 cell.setCellValue((Integer) value);
-            } else if(value instanceof Character){
+            } else if (value instanceof Character) {
                 cell.setCellValue((Character) value);
-            }else if(value instanceof Byte) {
+            } else if (value instanceof Byte) {
                 cell.setCellValue((Byte) value);
-            } else if(value instanceof Double){
+            } else if (value instanceof Double) {
                 cell.setCellValue((Double) value);
-            }else if(value instanceof Float){
+            } else if (value instanceof Float) {
                 cell.setCellValue((Float) value);
             } else if (value instanceof Date) {
                 cell.setCellValue((Date) value);
             } else if (value instanceof Boolean) {
                 cell.setCellValue((Boolean) value);
-            } else if(value instanceof LocalDateTime){
+            } else if (value instanceof LocalDateTime) {
                 cell.setCellValue((LocalDateTime) value);
             } else if (value instanceof Calendar) {
                 cell.setCellValue((Calendar) value);
@@ -697,24 +695,27 @@ public class POIExcel {
         }
     }
 
-    private void processDataRow(FunctionComponent2<HSSFRow, CellStyle> titleRow) {
-        putV(new Integer(8), titleRow);
+    public void processDataRow(FunctionComponent2<HSSFRow, CellStyle> titleRow) {
+        putV(ExcelMark.DATA_PROCESS_ROW, titleRow);
     }
 
     private void getDataRow(HSSFRow titleRow, CellStyle cellStyle) {
-        FunctionComponent2<HSSFRow, CellStyle> cell = (FunctionComponent2) getV(new Integer(8));
+        FunctionComponent2<HSSFRow, CellStyle> cell = (FunctionComponent2) getV(ExcelMark.DATA_PROCESS_ROW);
         if (cell != null) {
             cell.apply(titleRow, cellStyle);
         }
 
     }
 
-    private void processDataCell(FunctionComponent3<HSSFCell, CellStyle, Integer> titleCell) {
-        putV(new Integer(9), titleCell);
+    /**
+     * cell, style, cellIdx.
+     */
+    public void processDataCell(FunctionComponent3<HSSFCell, CellStyle, Integer> titleCell) {
+        putV(ExcelMark.DATA_PROCESS_CELL, titleCell);
     }
 
     private void getDataCell(HSSFCell titleCell, CellStyle cellStyle, Integer cellIndex) {
-        FunctionComponent3<HSSFCell, CellStyle, Integer> v = (FunctionComponent3<HSSFCell, CellStyle, Integer>) getV(new Integer(9));
+        FunctionComponent3<HSSFCell, CellStyle, Integer> v = (FunctionComponent3<HSSFCell, CellStyle, Integer>) getV(ExcelMark.DATA_PROCESS_CELL);
         if (v != null) {
             v.apply(titleCell, cellStyle, cellIndex);
         }
@@ -731,11 +732,37 @@ public class POIExcel {
      * @return: void
      * @Auther: cmj
      */
-    private void createClom(String[] cn_clom, HSSFSheet sheet, int rowIdx) {
+    private void createColumn(String[] cn_clom, HSSFSheet sheet, int rowIdx) {
         HSSFRow data_row = sheet.createRow(rowIdx);
+        getColumnRow(data_row, rowIdx);
+        HSSFWorkbook workbook = sheet.getWorkbook();
         for (int i = 0; i < cn_clom.length; i++) {
             HSSFCell clom_cell = data_row.createCell(i);
+            getColumnCell(clom_cell, workbook.createCellStyle(), i);
             clom_cell.setCellValue(cn_clom[i]);
+        }
+
+    }
+
+    public void processColumnCell(FunctionComponent3<HSSFCell, CellStyle, Integer> func) {
+        setV(ExcelMark.PROCESS_COLUM_CELL, func);
+    }
+
+    public void processColumnRow(FunctionComponent2<HSSFRow, Integer> func) {
+        setV(ExcelMark.PROCESS_COLUM_ROW, func);
+    }
+
+    private void getColumnRow(HSSFRow row, Integer rowIdx) {
+        FunctionComponent2<HSSFRow, Integer> func = (FunctionComponent2) getV(ExcelMark.PROCESS_COLUM_ROW);
+        if (func != null) {
+            func.apply(row, rowIdx);
+        }
+    }
+
+    private void getColumnCell(HSSFCell cell, CellStyle cellStyle, int rowIdx) {
+        FunctionComponent3<HSSFCell, CellStyle, Integer> func = (FunctionComponent3) getV(ExcelMark.PROCESS_COLUM_CELL);
+        if (func != null) {
+            func.apply(cell, cellStyle, rowIdx);
         }
     }
 
@@ -777,11 +804,11 @@ public class POIExcel {
     }
 
     private void processTitleRow(FunctionComponent2<HSSFRow, CellStyle> titleRow) {
-        putV(new Integer(6), titleRow);
+        putV(ExcelMark.TITLE_PROCESS_ROW, titleRow);
     }
 
     private void getTitleRow(HSSFRow titleRow, CellStyle cellStyle) {
-        FunctionComponent2<HSSFRow, CellStyle> cell = (FunctionComponent2) getV(new Integer(6));
+        FunctionComponent2<HSSFRow, CellStyle> cell = (FunctionComponent2) getV(ExcelMark.TITLE_PROCESS_ROW);
         if (cell != null) {
             cell.apply(titleRow, cellStyle);
         }
@@ -789,11 +816,11 @@ public class POIExcel {
     }
 
     private void processTitleCell(FunctionComponent2<HSSFCell, CellStyle> titleCell) {
-        putV(new Integer(7), titleCell);
+        putV(ExcelMark.TITLE_PROCESS_CELL, titleCell);
     }
 
     private void getTitleCell(HSSFCell titleCell, CellStyle cellStyle) {
-        FunctionComponent2<HSSFCell, CellStyle> v = (FunctionComponent2<HSSFCell, CellStyle>) getV(new Integer(7));
+        FunctionComponent2<HSSFCell, CellStyle> v = (FunctionComponent2<HSSFCell, CellStyle>) getV(ExcelMark.TITLE_PROCESS_CELL);
         if (v != null) {
             v.apply(titleCell, cellStyle);
         }
@@ -812,6 +839,11 @@ public class POIExcel {
     @FunctionalInterface
     public interface FunctionComponent3<T, S, I> {
         void apply(T t, S s, I i);
+    }
+
+    @FunctionalInterface
+    public interface FunctionComponent4<T, S, I, J> {
+        void apply(T t, S s, I i, J j);
     }
 
     /**
@@ -840,17 +872,11 @@ public class POIExcel {
     }
 
     /**
-     * @throws Exception
-     * @throws
-     * @Title: setV
-     * @Description: TODO(作用 ： 设置v)
-     * @param: @param val
-     * @return: void
-     * @Auther: cmj
+     * 设置运行变量
      */
-    private void setV(Object key, Object val) throws Exception {
+    private void setV(Object key, Object val) {
         if (key == null || val == null)
-            throw new Exception("key and val is null");
+            throw new RuntimeException("key and val is null");
         getPoisMap().put(key, val);
     }
 
