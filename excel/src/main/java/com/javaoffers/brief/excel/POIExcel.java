@@ -30,6 +30,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFObjectData;
 import org.apache.poi.xssf.usermodel.XSSFPicture;
 import org.apache.poi.xssf.usermodel.XSSFPictureData;
@@ -476,7 +477,12 @@ public class POIExcel {
      */
     private Map<String, List<MediaData>> getPictures(XSSFSheet sheet) throws Exception {
         Map<String, List<MediaData>> map = new HashMap();
-        List<XSSFShape> list = sheet.getDrawingPatriarch().getShapes();
+        XSSFDrawing drawingPatriarch = sheet.getDrawingPatriarch();
+        if(drawingPatriarch == null){
+            return new HashMap<>();
+        }
+        List<XSSFShape> list = drawingPatriarch.getShapes();
+        list = list == null ? new ArrayList<>() : list;
         for (XSSFShape shape : list) {
             if (shape instanceof XSSFPicture) {
                 XSSFPicture picture = (XSSFPicture) shape;
