@@ -35,15 +35,16 @@ public class POIUtilsTest {
          */
         //key 表示excel里的title，value表示解析出来的自定义key
         Map<String, String> map = MapUtils
-                .startBuildParam("id", "id")
-                .buildParam("图片","testAssetP")
-                .buildParam("视频","testAssetV")
-                .buildParam("类型","deriveType")
-                .buildParam("级别","level")
-                .buildParam("审核意见","auditComments")
-                .buildParam("拒审原因","rejection")
+                .startBuildParam("广告id", "adId")
+                .buildParam("图片测试素材", "testAssetP")
+                .buildParam("视频测试素材", "testAssetV")
+                .buildParam("衍生模板", "deriveType")
+                .buildParam("素材等级", "level")
+                .buildParam("EMI侧审核（南京）审核意见", "adminAuditStatus")
+                .buildParam("EMI侧审核（南京）拒审原因", "rejection")
                 .endBuildStringParam();
-        String file1 = POIUtilsTest.class.getClassLoader().getResource("excelSample.xlsx").getFile();
+//        String file1 = POIUtilsTest.class.getClassLoader().getResource("test250108.xlsx").getFile();
+        String file1 = "/Users/cmj/Downloads/001.xls";
         SheetData test = POIExcel.getInstance().parseExcelFileData(file1, "Sheet1", 0, 1, map);
         List<Map<String, Object>> rowsData = test.getRowsData();
         return rowsData;
